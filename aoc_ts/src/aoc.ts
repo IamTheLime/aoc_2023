@@ -1,4 +1,5 @@
 import { PathLike, readFileSync } from "fs";
+import { parse } from "url";
 
 type StringVectorOutput = String[];
 
@@ -75,6 +76,7 @@ function one(): void {
 
   console.log(final_value);
 }
+////////////////////////////////////////////////////////////////////////////////
 
 type RGB = Record<"red" | "green" | "blue", number>;
 
@@ -150,9 +152,58 @@ function two(): void {
   console.log(res_part_2);
 }
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+type CoordinatesInfoSymbol = {
+    x: number 
+    y: number 
+    symbol: "." | "*"
+}
+
+type CoordinatesInfoNumber = {
+    x: [number, number] // either a single x or a range
+    y: number 
+    symbol: number 
+}
+
+type CoordinatesInfo = CoordinatesInfoNumber | CoordinatesInfoSymbol
+
+function three(): void {
+  const readFile = read_input("./inputs/3.example.input", OutputStyle.StringVector);
+    const parsed_file = readFile.map((row, y_idx) => {
+        let new_row = row.split(/((?=[^\d])|(?<=[^\d]))/).filter(x => x !== "");
+        let track_x_shift = 0;
+        new_row.map( (entry, index)  => {
+            console.log("HERE", entry);
+            let min_x = index + track_x_shift;
+            let max_x = (entry.length > 1) ? min_x + entry.length - 1 : min_x;
+            switch (entry) {
+                case "." || "#":
+                    return {
+                        x: min_x,
+                        y: y_idx,
+                        symbol: entry 
+                    }
+                default:
+                    return {
+                        x: [min_x, max_x],
+                        y: y_idx,
+                        symbol: parseInt(entry, 10)
+                    }
+            }
+        }) 
+        return new_row;
+    });
+
+    console.log(parsed_file);
+    
+}
+
 function main(): void {
   // one();
-  two();
+  // two();
+    three();
 }
 
 main();
