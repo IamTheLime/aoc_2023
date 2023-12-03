@@ -158,43 +158,75 @@ function two(): void {
 type CoordinatesInfoSymbol = {
     x: number 
     y: number 
-    symbol: "." | "*"
+    symbol: "empty" | "symbol"
 }
 
 type CoordinatesInfoNumber = {
-    x: [number, number] // either a single x or a range
+    x: number
     y: number 
-    symbol: number 
+    hash: string 
+    symbol: number
+    reference: string
+    include_in_range?: boolean
 }
 
 type CoordinatesInfo = CoordinatesInfoNumber | CoordinatesInfoSymbol
+
+function range(start:number, end:number, step:number = 1): number[] {
+  let output = [];
+  if (typeof end === 'undefined') {
+    end = start;
+    start = 0;
+  }
+  for (let i = start; i < end; i += step) {
+    output.push(i);
+  }
+  return output;
+}
 
 function three(): void {
   const readFile = read_input("./inputs/3.example.input", OutputStyle.StringVector);
     const parsed_file = readFile.map((row, y_idx) => {
         let new_row = row.split(/((?=[^\d])|(?<=[^\d]))/).filter(x => x !== "");
         let track_x_shift = 0;
-        new_row.map( (entry, index)  => {
-            console.log("HERE", entry);
+        let parsed_row = new_row.map( (entry, index)  => {
             let min_x = index + track_x_shift;
             let max_x = (entry.length > 1) ? min_x + entry.length - 1 : min_x;
+            track_x_shift += (entry.length > 1) ? entry.length-1 : 0
             switch (entry) {
-                case "." || "#":
-                    return {
+                case entry.match(/[^\d]/)?.input:
+                    return <CoordinatesInfoSymbol>{
                         x: min_x,
                         y: y_idx,
-                        symbol: entry 
+                        symbol: entry === "." ? "empty" : "symbol" 
                     }
                 default:
-                    return {
-                        x: [min_x, max_x],
-                        y: y_idx,
-                        symbol: parseInt(entry, 10)
-                    }
+                    return range(min_x,max_x+1).map( (x) => {
+                        return <CoordinatesInfoNumber>{
+                            hash: `${y_idx}${min_x}${max_x}`,
+                            x:x,
+                            y: y_idx,
+                            symbol: parseInt(entry, 10),
+                            reference: entry.at(x)
+                        }
+                    })
             }
         }) 
-        return new_row;
+        return parsed_row.flat();
     });
+    
+    let select_numbers = new Set();
+    parsed_file.map((row, y) => {
+        row.map((col, x) => {
+            if (col.symbol === "symbol"){
+               range(x-1,x+2).map((x) => range(y-1, y+2).map((y)=>{
+                    switch (parsed_file[x][y]) {
+                        case 
+                    }
+                })) 
+            } 
+        })
+    })
 
     console.log(parsed_file);
     
