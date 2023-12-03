@@ -129,7 +129,7 @@ function range(start, end, step = 1) {
     return output;
 }
 function three() {
-    const readFile = read_input("./inputs/3.example.input", OutputStyle.StringVector);
+    const readFile = read_input("./inputs/3.input", OutputStyle.StringVector);
     const parsed_file = readFile.map((row, y_idx) => {
         let new_row = row.split(/((?=[^\d])|(?<=[^\d]))/).filter(x => x !== "");
         let track_x_shift = 0;
@@ -142,27 +142,60 @@ function three() {
                     return {
                         x: min_x,
                         y: y_idx,
-                        symbol: entry === "." ? "empty" : "symbol"
+                        symbol: entry === "." ? "empty" : (entry === "*" ? "gear" : "symbol"),
+                        gear_neighbours: []
                     };
                 default:
                     return range(min_x, max_x + 1).map((x) => {
                         return {
-                            hash: `${y_idx}${min_x}${max_x}`,
+                            uinique_identifier: `${y_idx}${min_x}${max_x}`,
                             x: x,
                             y: y_idx,
-                            symbol: parseInt(entry, 10),
-                            reference: entry.at(x)
+                            symbol: "number",
+                            value: parseInt(entry, 10),
+                            has_adjacent: false
                         };
                     });
             }
         });
         return parsed_row.flat();
     });
-    parsed_file.map((row) => {
-        row.map((col) => {
+    parsed_file.map((row, y) => {
+        row.map((col, x) => {
+            if (col.symbol === "symbol" || col.symbol === "gear") {
+                // console.log(col)
+                range(x - 1, x + 2).map((x) => range(y - 1, y + 2).map((y) => {
+                    const entry = parsed_file[y]?.[x];
+                    if (entry?.symbol === "number") {
+                        entry.has_adjacent = true;
+                    }
+                }));
+            }
+            if (col.symbol === "gear") {
+                let gear_neighbours = {};
+                // console.log(col)
+                range(x - 1, x + 2).map((x) => range(y - 1, y + 2).map((y) => {
+                    const entry = parsed_file[y]?.[x];
+                    if (entry?.symbol === "number") {
+                        gear_neighbours[entry.uinique_identifier] = entry.value;
+                    }
+                }));
+                col.gear_neighbours = Object.values(gear_neighbours);
+            }
         });
     });
-    console.log(parsed_file);
+    let found_numbers = {};
+    for (let entry of parsed_file.flat()) {
+        if (entry.symbol === "number" && entry.has_adjacent === true) {
+            found_numbers[entry.uinique_identifier] = entry.value;
+        }
+    }
+    console.log(found_numbers);
+    console.log(Object.values(found_numbers).reduce((acc, value) => acc + value));
+    const gears_res = parsed_file.flat().filter((val) => val.symbol === "gear" && val.gear_neighbours.length == 2).map((x) => {
+        return x.gear_neighbours.reduce((acc, val) => acc * val);
+    }).reduce((acc, x) => acc + x);
+    console.log(gears_res);
 }
 function main() {
     // one();

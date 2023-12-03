@@ -158,16 +158,18 @@ function two(): void {
 type CoordinatesInfoSymbol = {
     x: number 
     y: number 
-    symbol: "empty" | "symbol"
+    symbol: "empty" | "symbol" | "gear"
+    gear_neighbours: number[] 
 }
+
 
 type CoordinatesInfoNumber = {
     x: number
     y: number 
-    hash: string 
-    symbol: number
-    reference: string
-    include_in_range?: boolean
+    uinique_identifier: string 
+    symbol: "number"
+    value: number
+    has_adjacent: boolean
 }
 
 type CoordinatesInfo = CoordinatesInfoNumber | CoordinatesInfoSymbol
@@ -185,7 +187,7 @@ function range(start:number, end:number, step:number = 1): number[] {
 }
 
 function three(): void {
-  const readFile = read_input("./inputs/3.example.input", OutputStyle.StringVector);
+  const readFile = read_input("./inputs/3.input", OutputStyle.StringVector);
     const parsed_file = readFile.map((row, y_idx) => {
         let new_row = row.split(/((?=[^\d])|(?<=[^\d]))/).filter(x => x !== "");
         let track_x_shift = 0;
@@ -198,38 +200,72 @@ function three(): void {
                     return <CoordinatesInfoSymbol>{
                         x: min_x,
                         y: y_idx,
-                        symbol: entry === "." ? "empty" : "symbol" 
+                        symbol: entry === "." ? "empty" : (entry === "*" ? "gear" : "symbol"), 
+                        gear_neighbours: []
                     }
                 default:
                     return range(min_x,max_x+1).map( (x) => {
                         return <CoordinatesInfoNumber>{
-                            hash: `${y_idx}${min_x}${max_x}`,
+                            uinique_identifier: `${y_idx}${min_x}${max_x}`,
                             x:x,
                             y: y_idx,
-                            symbol: parseInt(entry, 10),
-                            reference: entry.at(x)
+                            symbol: "number",
+                            value: parseInt(entry, 10),
+                            has_adjacent: false 
                         }
                     })
             }
         }) 
         return parsed_row.flat();
     });
-    
-    let select_numbers = new Set();
+   
     parsed_file.map((row, y) => {
         row.map((col, x) => {
-            if (col.symbol === "symbol"){
+            if (col.symbol === "symbol" || col.symbol === "gear"){
+                // console.log(col)
                range(x-1,x+2).map((x) => range(y-1, y+2).map((y)=>{
-                    switch (parsed_file[x][y]) {
-                        case 
+                    const entry = parsed_file[y]?.[x];
+                    if (entry?.symbol === "number") {
+                       entry.has_adjacent = true; 
                     }
                 })) 
-            } 
+            }
+        
+            if (col.symbol === "gear"){
+
+                let gear_neighbours: Record<string, number> = {}
+                // console.log(col)
+               range(x-1,x+2).map((x) => range(y-1, y+2).map((y)=>{
+                    const entry = parsed_file[y]?.[x];
+                    if (entry?.symbol === "number") {
+                      gear_neighbours[entry.uinique_identifier] = entry.value; 
+                    }
+                }));
+
+                col.gear_neighbours = Object.values(gear_neighbours);
+            }
+
         })
     })
-
-    console.log(parsed_file);
     
+    let found_numbers: Record<string, number> = {}
+    
+    for (let entry of parsed_file.flat()) {
+        if (entry.symbol === "number" && entry.has_adjacent === true) {
+            found_numbers[entry.uinique_identifier] = entry.value;
+        }
+    }
+
+    console.log(found_numbers)
+    console.log(Object.values(found_numbers).reduce((acc, value) => acc + value));
+    
+    const gears_res = parsed_file.flat().filter(
+        (val) => val.symbol === "gear" && val.gear_neighbours.length == 2
+    ).map((x) => {
+        return (<CoordinatesInfoSymbol>x).gear_neighbours.reduce((acc, val) => acc * val);
+    }).reduce((acc,x) => acc + x)
+    console.log(gears_res)
+
 }
 
 function main(): void {
