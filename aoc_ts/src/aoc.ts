@@ -279,36 +279,25 @@ function four(): void {
         return {
             winning_cards: winning_cards,
             lotto_cards: lotto_cards,
-            lotto_in_winning: lotto_cards?.filter((lotto_card) => winning_cards?.indexOf(lotto_card) !== -1).reduce((acc, card) => acc === 0 ? acc + 1 : acc * 2, 0)
+            lotto_in_winning_list: lotto_cards?.filter((lotto_card) => winning_cards?.indexOf(lotto_card) !== -1),
+            lotto_in_winning: lotto_cards?.filter((lotto_card) => winning_cards?.indexOf(lotto_card) !== -1).reduce((acc, card) => acc === 0 ? acc + 1 : acc * 2, 0),
+            number_of_cards: 1,
         }
     })
     console.log(res.reduce((acc, curr) => acc + <number>curr.lotto_in_winning, 0));
 
-    const winners = readFile.map((card) => {
-        const card_split_no_prefix = card.split(":");
-        const card_split_drawn_hand_game = card_split_no_prefix[1]?.split("|");
-        const winning_cards = card_split_drawn_hand_game?.[0]?.split(" ").filter(x => x !== "");
-        const lotto_cards = card_split_drawn_hand_game?.[1]?.split(" ").filter(x => x !== "");
-        const winners = {
-            winning_cards: winning_cards,
-            lotto_cards: lotto_cards,
-            lotto_in_winning: lotto_cards?.filter((lotto_card) => winning_cards?.indexOf(lotto_card) !== -1),
-            number_of_cards: 1,
-        }
-        return winners
-    })
 
-    for (const [index, value] of winners.entries()) {
-        const total_matching = value.lotto_in_winning ? value.lotto_in_winning.length : 0;
+    for (const [index, value] of res.entries()) {
+        const total_matching = value.lotto_in_winning_list ? value.lotto_in_winning_list.length : 0;
         for (const card of range(0, value.number_of_cards)) {
             for (const secondary_index of range(index + 1, index + total_matching + 1)) {
-                let card = winners[secondary_index]
+                let card = res[secondary_index]
                 if (card) card.number_of_cards += 1;
             }
         }
     }
 
-    console.log(winners.reduce((acc, curr) =>  acc + curr.number_of_cards, 0))
+    console.log(res.reduce((acc, curr) =>  acc + curr.number_of_cards, 0))
 
 }
 function main(): void {
