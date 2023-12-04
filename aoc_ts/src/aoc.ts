@@ -268,10 +268,28 @@ function three(): void {
 
 }
 
+function four(): void {
+    const readFile = read_input("./inputs/4.input", OutputStyle.StringVector);
+    
+    const res = readFile.map( (card) => {
+        const card_split_no_prefix = card.split(":");
+        const card_split_drawn_hand_game = card_split_no_prefix[1]?.split("|");
+        const winning_cards = card_split_drawn_hand_game?.[0]?.split(" ").filter(x => x!== "");
+        const lotto_cards = card_split_drawn_hand_game?.[1]?.split(" ").filter(x => x !== "");
+        return {
+            winning_cards: winning_cards,
+            lotto_cards: lotto_cards,
+            lotto_in_winning: lotto_cards?.filter((lotto_card) => winning_cards?.indexOf(lotto_card)!== -1).reduce((acc, card) => acc === 0 ? acc + 1 : acc * 2, 0)
+        }
+    })
+    console.log(res.reduce((acc, curr) => acc + <number>curr.lotto_in_winning, 0));
+
+}
 function main(): void {
     // one();
     // two();
-    three();
+    // three();
+    four();
 }
 
 main();
