@@ -1,5 +1,4 @@
 import { PathLike, readFileSync } from "fs";
-import { parse } from "url";
 
 type StringVectorOutput = String[];
 
@@ -300,11 +299,49 @@ function four(): void {
     console.log(res.reduce((acc, curr) =>  acc + curr.number_of_cards, 0))
 
 }
+
+type mappings = {
+    [froms: string]: { //this will be your seed soil fertilizer...
+        to: string, 
+        [tos: string]: string
+    }
+}
+
+function five(): void {
+    const readFile = read_input("./inputs/5.example.input", OutputStyle.StringVector);
+    
+    const seeds = readFile[0]?.split(":")[1]?.split(" ").splice(1);
+    let maps: mappings = {};
+    let current_from: string = "";
+    let current_to:string = "";
+    for (let entry of readFile.splice(1)){
+        if (entry.indexOf("map:") != -1) {
+            current_from = <string>entry.split("-")[0]
+            current_to = <string>entry.split("-")[2]?.split(" ")[0]
+        } else {
+            const nums = entry.split(" ")
+            for (let r of range(parseInt(<string>nums[1]),parseInt(<string>nums[2]) + 1)) {
+                maps[current_from] = {
+                    ...{
+                        to: current_to,
+                        [r]: (r - parseInt(<string>nums[0]) + parseInt(<string>nums[1])).toString(),
+                    },
+                    ...maps[current_from]
+                };
+            }
+        } 
+    }
+
+    console.log(maps)
+
+}
+
 function main(): void {
     // one();
     // two();
     // three();
-    four();
+    // four();
+    five();
 }
 
 main();

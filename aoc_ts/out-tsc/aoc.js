@@ -225,11 +225,38 @@ function four() {
     }
     console.log(res.reduce((acc, curr) => acc + curr.number_of_cards, 0));
 }
+function five() {
+    const readFile = read_input("./inputs/5.example.input", OutputStyle.StringVector);
+    const seeds = readFile[0]?.split(":")[1]?.split(" ").splice(1);
+    let maps = {};
+    let current_from = "";
+    let current_to = "";
+    for (let entry of readFile.splice(1)) {
+        if (entry.indexOf("map:") != -1) {
+            current_from = entry.split("-")[0];
+            current_to = entry.split("-")[2]?.split(" ")[0];
+        }
+        else {
+            const nums = entry.split(" ");
+            for (let r of range(parseInt(nums[1]), parseInt(nums[2]) + 1)) {
+                maps[current_from] = {
+                    ...{
+                        to: current_to,
+                        [r]: (r - parseInt(nums[0]) + parseInt(nums[1])).toString(),
+                    },
+                    ...maps[current_from]
+                };
+            }
+        }
+    }
+    console.log(maps);
+}
 function main() {
     // one();
     // two();
     // three();
-    four();
+    // four();
+    five();
 }
 main();
 //# sourceMappingURL=aoc.js.map
